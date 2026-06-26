@@ -1,7 +1,8 @@
-import express, {Response} from 'express'
+import express, { Response } from 'express'
 import cors from 'cors'
 import { login } from './controllers/authController'
 import { AuthRequest, verifyJWT } from './middleware/authMiddleware'
+import { db } from './database/connection'
 
 const app = express()
 const PORT = 5000
@@ -37,6 +38,22 @@ app.get('/users', (req, res) => {
             }
         }
     })
+})
+
+app.post('/user/register', async (req, res) => {
+
+    console.log('#'.repeat(50))
+    console.log('req.body', req.body)
+    console.log('#'.repeat(50))
+    const { name, email, password } = req.body
+    // Trazer o usuário de Código 1
+    // Mostrar no retorno somente NOme e Email
+    const retornoBanco = await db.raw(
+        `INSERT INTO users (name,email,password_hashed) VALUES ( ?, ?, ? );`, [name, email, password]
+    )
+    // console.log(retornoBanco[0][0].name)
+
+    return res.status(200).json({ message: "Usuário cadastrado com sucesso !" })
 })
 
 app.listen(PORT, () => {
