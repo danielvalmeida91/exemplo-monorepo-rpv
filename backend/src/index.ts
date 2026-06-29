@@ -46,12 +46,24 @@ app.post('/user/register', async (req, res) => {
     console.log('req.body', req.body)
     console.log('#'.repeat(50))
     const { name, email, password } = req.body
-    // Trazer o usuário de Código 1
-    // Mostrar no retorno somente NOme e Email
-    const retornoBanco = await db.raw(
+    // Verificar se o email a ser cadastrado existe previamente no banco 
+    // Se EXISTIR deverá retornar erro 412 com a mensagem ( Não foi possível realizar a operação )
+
+    const emails = await db.raw(`SELECT * FROM users WHERE email = ?`, [email])
+    const emailExists = emails[0].length > 0 ? true : false
+
+    if (emailExists) {
+        return res.status(412).json({ message: 'A requisição não pode ser concluída. Email já cadastrado.' })
+    }
+
+
+    await db.raw(
         `INSERT INTO users (name,email,password_hashed) VALUES ( ?, ?, ? );`, [name, email, password]
     )
-    // console.log(retornoBanco[0][0].name)
+
+    const [lastInserted] = await db.select('*').from('users').where({ email })
+    console.log(lastInserted)
+    console.log(lastInserted.id)
 
     return res.status(200).json({ message: "Usuário cadastrado com sucesso !" })
 })
