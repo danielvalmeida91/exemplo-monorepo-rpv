@@ -64,6 +64,48 @@ app.get('/users', verifyJWT, async (req, res) => {
     })
 })
 
+app.get('/users/:id', async (req, res) => {
+    const { id } = req.params
+
+    console.log('nova requisicao')
+
+    const query = await db.select('name', 'email', 'id').from('users').where({
+        id
+    })
+
+    console.log('query length', query.length === 0)
+
+    if (query.length === 0) {
+        return res.status(204).json({ message: 'Usuario não encontrado !' })
+    }
+
+    return res.status(200).json({
+        message: "Usuário encontrado com sucesso!",
+        data: {
+            info: {
+                users: query
+            }
+        }
+    })
+})
+
+app.delete('/users/:id', async (req, res) => {
+    const { id } = req.params
+
+    const userExists = await db.select('*').from('users').where({ id })
+
+    if (userExists.length === 0) {
+        return res.status(400).json({ message: "Usuário não encontrado!" })
+    }
+
+    const deleteUser = await db.delete().from('users').where({ id })
+
+    console.log('Remover', deleteUser)
+
+    return res.status(200).json({ message: "Usuário removido com sucesso !" })
+
+})
+
 app.post('/user/register', async (req, res) => {
 
     console.log('#'.repeat(50))
